@@ -47,6 +47,10 @@
 				  ${errorMessage}
 				  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button>
 				</div>
+				<div class="alert alert-success alert-dismissible fade show  ${successMessage==null?'d-none':'' }" role="alert">
+				  ${successMessage}
+				  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button>
+				</div>
 			    
 			     <div class="p-5 mb-4 bg-light rounded-3">
 				      <div class="container-fluid py-5">
@@ -58,6 +62,7 @@
 				        <a class="btn btn-primary btn-lg" href="${pageContext.request.contextPath}/satellite/disattivatiNonRientrati">Disattivati non rientrati</a>
 				        <a class="btn btn-primary btn-lg" href="${pageContext.request.contextPath}/satellite/nonDisattivatiNonRientratiDa">Disattivati non rientrati da 2 anni</a>
 				        <a class="btn btn-primary btn-lg" href="${pageContext.request.contextPath}/satellite/fissiNonRientratiDa"> fissi da 10 anni</a>
+				        <a class="btn btn-primary btn-lg" href="${pageContext.request.contextPath}/satellite/emergenze"> Emergenze</a>
 				      </div>
 			    </div>
 			    

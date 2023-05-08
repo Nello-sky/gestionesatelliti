@@ -36,8 +36,36 @@ public class SatelliteController {
 	public ModelAndView listAll() {
 		ModelAndView mv = new ModelAndView();
 		List<Satellite> results = satelliteService.listAllElements();
+		
 		mv.addObject("satellite_list_attribute", results);
 		mv.setViewName("satellite/list");
+		return mv;
+	}
+	
+	@GetMapping("/emergenze")
+	public ModelAndView emergenze(RedirectAttributes redirectAttrs) {
+		
+		ModelAndView mv = new ModelAndView();
+		List<Satellite> ListaAll = satelliteService.listAllElements();
+		int valoriListAll = ListaAll.size();
+		List<Satellite> ListaEmergenze = satelliteService.listaEmergenze();
+		int valoriListEmergenze = ListaEmergenze.size();
+		
+		if (valoriListAll<=0 ) {
+			mv.setViewName("redirect:/satellite");
+			redirectAttrs.addFlashAttribute("errorMessage", "Nessun elemento nel DB");
+			return mv;
+		} else {
+			if (valoriListEmergenze<=0) {
+				mv.setViewName("redirect:/satellite");
+				redirectAttrs.addFlashAttribute("errorMessage", "Nessun satellite in orbita");
+				return mv;
+			}
+		}
+		
+		mv.addObject("all_list_attribute", valoriListAll);
+		mv.addObject("emergenze_list_attribute", valoriListAll);
+		mv.setViewName("satellite/emergenze");
 		return mv;
 	}
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////	
@@ -167,7 +195,7 @@ public class SatelliteController {
 			return "satellite/edit";
 
 		if (validateService.validateInsertEdit(satellite, result, redirectAttrs) == true)
-			return "satellite/insert";
+			return "satellite/edit";
 		
 		satelliteService.aggiorna(satellite);
 
@@ -178,7 +206,7 @@ public class SatelliteController {
 	@PostMapping("/lancia")
 	public String lancia(@Valid @ModelAttribute("lancia_satellite_id") Satellite satellite, BindingResult result,
 	RedirectAttributes redirectAttrs) {
-		satelliteService.aggiornaDataLancio(satellite.getId(), LocalDate.now());
+		satelliteService.aggiornaDataLancio(satellite.getId(), LocalDate.now(), satellite.getStato().IN_MOVIMENTO);
 		redirectAttrs.addFlashAttribute("successMessage", "Operazione eseguita correttamente");
 		return "redirect:/satellite";
 	}
@@ -186,8 +214,16 @@ public class SatelliteController {
 	@PostMapping("/rientra")
 	public String rientra(@Valid @ModelAttribute("rientra_satellite_id") Satellite satellite, BindingResult result,
 	RedirectAttributes redirectAttrs) {
-		satelliteService.aggiornaDataRientro(satellite.getId(), LocalDate.now());
+		satelliteService.aggiornaDataRientro(satellite.getId(), LocalDate.now(), satellite.getStato().FISSO);
 		redirectAttrs.addFlashAttribute("successMessage", "Operazione eseguita correttamente");
 		return "redirect:/satellite";
+	}
+	
+	@PostMapping("/editEmergenze")
+	public String editEmergenze(ModelMap model, RedirectAttributes redirectAttrs ) {
+		satelliteService.aggiornaEmergenze();
+		redirectAttrs.addFlashAttribute("successMessage", "Operazione eseguita correttamente");
+		return "redirect:/satellite";
+		
 	}
 }

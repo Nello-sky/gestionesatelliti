@@ -28,11 +28,17 @@ public interface SatelliteRepository extends CrudRepository<Satellite, Long>,Jpa
 	
 	// modifico singolo campo..ci sono metodi piu sensati per non scriverne mille di questi
 	@Modifying
-	@Query("update Satellite s set s.dataLancio = :dataLancioNow where s.id = :id")
-	void updateDataLancio(@Param(value = "id") long id, @Param(value = "dataLancioNow") LocalDate dataLancioInput);
+	@Query("update Satellite s set s.dataLancio = :dataLancioNow, s.stato = :statoMove where s.id = :id") //setting diretto?
+	void updateDataLancio(@Param(value = "id") long id, @Param(value = "dataLancioNow") LocalDate dataLancioInput, @Param(value = "statoMove") StatoSatellite statoMove);
 	
 	@Modifying
-	@Query("update Satellite s set s.dataRientro = :dataRientroNow where s.id = :id")
-	void updateDataRientro(@Param(value = "id") long id, @Param(value = "dataRientroNow") LocalDate dataRientroInput);
+	@Query("update Satellite s set s.dataRientro = :dataRientroNow, s.stato = :statoDis where s.id = :id")
+	void updateDataRientro(@Param(value = "id") long id, @Param(value = "dataRientroNow") LocalDate dataRientroInput,@Param(value = "statoDis") StatoSatellite statoDis);
 	
+	//disattivaTutti
+	List<Satellite> findAllByDataLancioNotNullAndStatoNotNullAndStatoNotLike(StatoSatellite statoInput);
+	
+	@Modifying
+	@Query("update Satellite s set s.dataRientro = :dataRientroNow, s.stato = :statoDis where (s.dataLancio is not null and s.stato not like 'FISSO') or (s.dataLancio is not null and s.stato not like 'IN_MOVIMENTO')")
+	void updateEmergenze(@Param(value = "dataRientroNow") LocalDate dataRientroInput,@Param(value = "statoDis") StatoSatellite statoDis);
 }

@@ -110,13 +110,27 @@ public class SatelliteServiceImpl implements SatelliteService {
 
 	@Override
 	@Transactional
-	public void aggiornaDataLancio(Long id, LocalDate dataLancioInput) {
-		repository.updateDataLancio(id, dataLancioInput);
+	public void aggiornaDataLancio(Long id, LocalDate dataLancioInput, StatoSatellite statoInput) {
+		repository.updateDataLancio(id, dataLancioInput, statoInput );
 	}
 	
 	@Override
 	@Transactional
-	public void aggiornaDataRientro(Long id, LocalDate dataRientroInput) {
-		repository.updateDataRientro(id, dataRientroInput);
+	public void aggiornaDataRientro(Long id, LocalDate dataRientroInput, StatoSatellite statoInput) {
+		repository.updateDataRientro(id, dataRientroInput, statoInput);
+	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<Satellite> listaEmergenze() {
+		StatoSatellite statoDis = StatoSatellite.DISATTIVATO;
+		return (List<Satellite>) repository.findAllByDataLancioNotNullAndStatoNotNullAndStatoNotLike(statoDis);
+	}
+
+	@Override
+	@Transactional
+	public void aggiornaEmergenze() {
+		repository.updateEmergenze(LocalDate.now(), StatoSatellite.DISATTIVATO);
+		
 	}
 }

@@ -32,7 +32,11 @@ public interface SatelliteService {
 	
 	// extra buttons
 	
-	void aggiornaDataLancio(Long id, LocalDate dataLancioInput);
+	void aggiornaDataLancio(Long id, LocalDate dataLancioInput, StatoSatellite statoInput);
 	
-	void aggiornaDataRientro(Long id, LocalDate dataRientroInput);
+	void aggiornaDataRientro(Long id, LocalDate dataRientroInput, StatoSatellite statoInput);
+	
+	List<Satellite> listaEmergenze();
+	
+	void aggiornaEmergenze();
 }
