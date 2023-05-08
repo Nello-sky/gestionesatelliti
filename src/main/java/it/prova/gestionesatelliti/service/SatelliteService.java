@@ -29,4 +29,10 @@ public interface SatelliteService {
 	List<Satellite> findByDataRientroMinoreDiEStatoNotDisattivato(LocalDate dataInput, StatoSatellite statoInput);
 	
 	List<Satellite> cercaByDataLancioLessThanEqualAndStato(LocalDate dataInput, StatoSatellite statoInput);
+	
+	// extra buttons
+	
+	void aggiornaDataLancio(Long id, LocalDate dataLancioInput);
+	
+	void aggiornaDataRientro(Long id, LocalDate dataRientroInput);
 }

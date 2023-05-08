@@ -96,13 +96,27 @@ public class SatelliteServiceImpl implements SatelliteService {
 	}
 
 	@Override
+	@Transactional
 	public List<Satellite> findByDataRientroMinoreDiEStatoNotDisattivato(LocalDate dataInput,
 			StatoSatellite statoInput) {
 		return (List<Satellite>) repository.findByDataLancioLessThanEqualAndStatoNot(dataInput, statoInput);
 	}
 
 	@Override
+	@Transactional
 	public List<Satellite> cercaByDataLancioLessThanEqualAndStato(LocalDate dataInput, StatoSatellite statoInput) {
 		return (List<Satellite>) repository.findByDataLancioAndStato(dataInput, statoInput);
+	}
+
+	@Override
+	@Transactional
+	public void aggiornaDataLancio(Long id, LocalDate dataLancioInput) {
+		repository.updateDataLancio(id, dataLancioInput);
+	}
+	
+	@Override
+	@Transactional
+	public void aggiornaDataRientro(Long id, LocalDate dataRientroInput) {
+		repository.updateDataRientro(id, dataRientroInput);
 	}
 }

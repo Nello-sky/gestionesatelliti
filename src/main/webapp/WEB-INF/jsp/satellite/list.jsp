@@ -33,6 +33,10 @@
 				  Aggiungere d-none nelle class per non far apparire
 				   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button>
 				</div>
+				<div class="alert alert-danger alert-dismissible fade show ${errorMessage==null?'d-none':'' }" role="alert">
+					  ${errorMessage}
+					  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" ></button>
+				</div>
 		  
 		  
 		  
@@ -73,6 +77,22 @@
 												<a class="btn  btn-sm btn-outline-secondary" href="${pageContext.request.contextPath}/satellite/show/${satelliteItem.id }">Visualizza</a>
 												<a class="btn  btn-sm btn-outline-primary ml-2 mr-2" href="${pageContext.request.contextPath}/satellite/edit/${satelliteItem.id }">Edit</a>
 												<a class="btn btn-outline-danger btn-sm" href="${pageContext.request.contextPath}/satellite/delete/${satelliteItem.id }">Delete</a>
+												
+												<c:if test="${satelliteItem.dataLancio == null}">
+													<form method="post" action="${pageContext.request.contextPath}/satellite/lancia" novalidate="novalidate">
+														<input type="hidden" value="${satelliteItem.id}" name="id"></input>
+														<button type="submit" name="submit" id="submit"
+														class="btn btn-primary btn-sm">Lancia</button>
+													</form>
+												</c:if>
+												<c:if test="${satelliteItem.stato ne 'DISATTIVATO' and satelliteItem.stato ne null and empty satelliteItem.dataRientro and not empty satelliteItem.dataLancio }">
+													<form method="post" action="${pageContext.request.contextPath}/satellite/rientra" novalidate="novalidate">
+														<input type="hidden" value="${satelliteItem.id}" name="id"></input>
+														<button type="submit" name="submit" id="submit"
+														class="btn btn-primary btn-sm">Rientra</button>
+													</form>
+												</c:if>
+												
 											</td>
 										</tr>
 									</c:forEach>

@@ -4,7 +4,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import it.prova.gestionesatelliti.model.Satellite;
 import it.prova.gestionesatelliti.model.StatoSatellite;
@@ -23,5 +26,13 @@ public interface SatelliteRepository extends CrudRepository<Satellite, Long>,Jpa
 //	Rimasti in orbita 10 anni ma che ora sono fissi;
 	List<Satellite> findByDataLancioAndStato(LocalDate dataInput, StatoSatellite statoInput);
 	
+	// modifico singolo campo..ci sono metodi piu sensati per non scriverne mille di questi
+	@Modifying
+	@Query("update Satellite s set s.dataLancio = :dataLancioNow where s.id = :id")
+	void updateDataLancio(@Param(value = "id") long id, @Param(value = "dataLancioNow") LocalDate dataLancioInput);
+	
+	@Modifying
+	@Query("update Satellite s set s.dataRientro = :dataRientroNow where s.id = :id")
+	void updateDataRientro(@Param(value = "id") long id, @Param(value = "dataRientroNow") LocalDate dataRientroInput);
 	
 }

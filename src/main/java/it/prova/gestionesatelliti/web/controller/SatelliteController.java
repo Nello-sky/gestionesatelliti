@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import it.prova.gestionesatelliti.model.Satellite;
 import it.prova.gestionesatelliti.model.StatoSatellite;
 import it.prova.gestionesatelliti.service.SatelliteService;
+import it.prova.gestionesatelliti.service.ValidateService;
 
 @Controller
 @RequestMapping(value = "/satellite")
@@ -28,6 +29,8 @@ public class SatelliteController {
 
 	@Autowired
 	private SatelliteService satelliteService;
+	@Autowired
+	private ValidateService validateService;
 
 	@GetMapping
 	public ModelAndView listAll() {
@@ -97,84 +100,9 @@ public class SatelliteController {
 		if (result.hasErrors())
 			return "satellite/insert";
 
-		if (satellite.getDataLancio() != null) {
-
-			// blocco stabile 1 - data di lancio dopo oggi
-			if (satellite.getDataLancio().isAfter(LocalDate.now())) {
-
-				if (satellite.getDataRientro() != null) {
-					if (satellite.getDataRientro().isBefore(satellite.getDataLancio())) {
-						result.rejectValue("dataRientro", "satellite.dataRientro.rientroAfter", "void message!");
-						if (satellite.getStato() != null) {
-							result.rejectValue("stato", "satellite.stato.null", "void message!");
-						}
-						return "satellite/insert";
-					} else {
-						if (satellite.getStato() != null) {
-							result.rejectValue("stato", "satellite.stato.null", "void message!");
-							return "satellite/insert";
-						}
-					}
-				} else {
-					if (satellite.getStato() != null) {
-						result.rejectValue("stato", "satellite.stato.null", "void message!");
-						return "satellite/insert";
-					}
-				}
-				// end blocco 1 - inizio blocco 2 - data lancio prima di oggi
-			} else {
-				if (satellite.getDataRientro() == null) {
-					if (satellite.getStato() == null) {
-						result.rejectValue("stato", "satellite.stato.notNull", "void message!"); // forse non puo essere
-																									// disabilitato
-
-						return "satellite/insert";
-					}
-				} else { // dataRientro non null 
-					if (satellite.getDataRientro().isBefore(LocalDate.now())) {
-						if (satellite.getDataRientro().isBefore(satellite.getDataLancio())) {
-							result.rejectValue("dataRientro", "satellite.dataRientro.rientroAfter", "void message!");
-							if (! (satellite.getStato() == StatoSatellite.DISATTIVATO) ) {
-								result.rejectValue("stato", "satellite.stato.notDisabilitato", "void message!");
-							}
-							return "satellite/insert";
-						} else {
-							if (! (satellite.getStato() == StatoSatellite.DISATTIVATO)) {
-								result.rejectValue("stato", "satellite.stato.notDisabilitato", "void message!");
-								return "satellite/insert";
-							}
-						}
-					} else {
-						if (satellite.getDataRientro().isBefore(satellite.getDataLancio())) {   //scontata non si verifica mai.
-							result.rejectValue("dataRientro", "satellite.dataRientro.rientroAfter", "void message!");
-							if (satellite.getStato() != null) {
-								result.rejectValue("stato", "satellite.stato.notNull", "void message!");
-							}
-							return "satellite/insert";
-						} else {
-							if (satellite.getStato() == null) {
-								result.rejectValue("stato", "satellite.stato.notNull", "void message!");
-								return "satellite/insert";
-							}
-						}
-					}
-				}
-			} // end blocco 2
-
-		} else { // blocco last stabile se dataLancioNull
-			if (satellite.getDataRientro() != null) {
-				result.rejectValue("dataRientro", "satellite.dataRientro.s", "void message!");
-				result.rejectValue("dataLancio", "satellite.dataLancio.s", "void message!");
-				if (satellite.getStato() != null) {
-					result.rejectValue("stato", "satellite.stato.null", "void message!");
-				}
-				return "satellite/insert";
-			}
-			if (satellite.getStato() != null) {
-				result.rejectValue("stato", "satellite.stato.null", "void message!");
-				return "satellite/insert";
-			}
-		}
+		
+		if (validateService.validateInsertEdit(satellite, result, redirectAttrs) == true)
+			return "satellite/insert";
 
 		satelliteService.inserisciNuovo(satellite);
 
@@ -190,8 +118,16 @@ public class SatelliteController {
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	@GetMapping("/delete/{idSatellite}")
-	public String delete(@PathVariable(required = true) Long idSatellite, Model model) {
-		model.addAttribute("delete_satellite_attr", satelliteService.caricaSingoloElemento(idSatellite));
+	public String delete(@PathVariable(required = true) Long idSatellite, Model model,RedirectAttributes redirectAttributes) {
+		
+		Satellite satelliteUploadDelete = satelliteService.caricaSingoloElemento(idSatellite);
+		
+		if (validateService.validateDelete(satelliteUploadDelete, redirectAttributes) == true)
+			return "redirect:/satellite";
+		
+
+		
+		model.addAttribute("delete_satellite_attr",satelliteUploadDelete);
 		return "satellite/delete";
 	}
 
@@ -199,9 +135,17 @@ public class SatelliteController {
 	public String elimina(@Valid @ModelAttribute("elimina_satellite_id") Satellite satellite, BindingResult result,
 			RedirectAttributes redirectAttrs) {
 
-//		if (result.hasErrors())
-//			return "impiegato/insert";
-
+//		if(satellite.getDataLancio() != null) {  //lanci futuri sono a null..quindi va semplificato
+//			if (! (satellite.getStato() == StatoSatellite.DISATTIVATO) ) {
+//				result.rejectValue("stato", "satellite.stato.notRemovable", "void message!");
+//				return "satellite/insert";
+//			}
+//			
+//		} else {
+//			redirectAttrs.addFlashAttribute("dataLancio", "satellite.dataRientro.notRemovable");
+//			return "redirect:/satellite/insert";
+//		}
+		
 		satelliteService.rimuovi(satellite.getId());
 
 		redirectAttrs.addFlashAttribute("successMessage", "Operazione eseguita correttamente");
@@ -222,8 +166,27 @@ public class SatelliteController {
 		if (result.hasErrors())
 			return "satellite/edit";
 
+		if (validateService.validateInsertEdit(satellite, result, redirectAttrs) == true)
+			return "satellite/insert";
+		
 		satelliteService.aggiorna(satellite);
 
+		redirectAttrs.addFlashAttribute("successMessage", "Operazione eseguita correttamente");
+		return "redirect:/satellite";
+	}
+	
+	@PostMapping("/lancia")
+	public String lancia(@Valid @ModelAttribute("lancia_satellite_id") Satellite satellite, BindingResult result,
+	RedirectAttributes redirectAttrs) {
+		satelliteService.aggiornaDataLancio(satellite.getId(), LocalDate.now());
+		redirectAttrs.addFlashAttribute("successMessage", "Operazione eseguita correttamente");
+		return "redirect:/satellite";
+	}
+	
+	@PostMapping("/rientra")
+	public String rientra(@Valid @ModelAttribute("rientra_satellite_id") Satellite satellite, BindingResult result,
+	RedirectAttributes redirectAttrs) {
+		satelliteService.aggiornaDataRientro(satellite.getId(), LocalDate.now());
 		redirectAttrs.addFlashAttribute("successMessage", "Operazione eseguita correttamente");
 		return "redirect:/satellite";
 	}
